@@ -1,2 +1,6 @@
 /MLog.class
 /MLogTest.class
+/FacilityNumbers.class
+/LogSeverity.class
+/MFileLogger.class
+/MSysLogger.class
