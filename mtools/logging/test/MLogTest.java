@@ -34,17 +34,25 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package mtools.logging;
+package mtools.logging.test;
 
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import mtools.logging.FacilityNumbers;
+import mtools.logging.MLog;
+
 public class MLogTest {
 	public static void main(String[]args) throws SocketException, UnknownHostException {
-		MSysLogger msl = new MSysLogger("TestLogger", FacilityNumbers.USER_LEVEL, InetAddress.getLocalHost());
+		//MFileLogger mfl = new MFileLogger();
+		//mfl.log("Test log message");
+		//mfl.close();
 		
-		//Example log...
-		msl.log("OSPF cannot converge due to authentication key mismatch", LogSeverity.ERROR, "OSPF", "0");
+		MLog.initFileLogger();
+		MLog.initSysLogger("LogTest", FacilityNumbers.LOCAL_USE_5, InetAddress.getLocalHost());
+		MLog.fileLog.log("This is a test message...");
+		MLog.sysLog.log("This is a test message...");
+		
 	}
 }
