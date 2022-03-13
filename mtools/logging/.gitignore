@@ -4,3 +4,5 @@
 /LogSeverity.class
 /MFileLogger.class
 /MSysLogger.class
+/Logger.class
+/MLogger.class
