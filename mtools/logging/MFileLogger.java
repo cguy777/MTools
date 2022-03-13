@@ -47,6 +47,7 @@ import java.time.temporal.ChronoUnit;
  * This class follows the severity levels defined by RFC 5424.
  * However, the log statement that is written is not overall compliant with RFC 5424.
  * See the {@link LogSeverity} class for severity level definitions.
+ * Uses a UTC timestamp by default.
  * @author Noah
  *
  */
@@ -83,6 +84,13 @@ public class MFileLogger {
 	}
 	
 	/**
+	 * Not implemented.
+	 */
+	public void setTimeZone() {
+		
+	}
+	
+	/**
 	 * Writes a log statement.
 	 * Assigns it a severity of "Informational" (6) by default.
 	 * Assigns it a process ID of 0 by default.
@@ -114,7 +122,7 @@ public class MFileLogger {
 		try {
 			//Throws and IllegalArgumentException if the severity is illegal.
 			LogSeverity.checkForValidSeverity(severity);
-			bWriter.write(java.time.Clock.systemUTC().instant().truncatedTo(ChronoUnit.MICROS).toString() + ", Severity " + severity + ", PID " + processID + ", " + logMessage);
+			bWriter.write(createLogStatement(logMessage, severity, processID));
 			bWriter.newLine();
 			bWriter.flush();
 		} catch(IllegalArgumentException iae) {
@@ -138,5 +146,17 @@ public class MFileLogger {
 			System.err.println("Cannot close logging system!!!");
 			e.printStackTrace();
 		}
+	}
+	
+	private String createLogStatement(String logMessage, int severity, String processID) {
+		String statement = java.time.Clock.systemUTC().instant().truncatedTo(ChronoUnit.MICROS).toString();
+		statement += ", Severity ";
+		statement += severity;
+		statement += ", PID ";
+		statement += processID;
+		statement += ", ";
+		statement += logMessage;
+		
+		return statement;
 	}
 }

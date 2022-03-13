@@ -68,6 +68,7 @@ public class MSysLogger {
 	 * Sets the remote port for the syslog server to a default of 514.
 	 * See the {@link LogSeverity} class for severity level definitions.
 	 * See the {@link FacilityNumbers} class for facility number definitions.
+	 * Uses a UTC timestamp by default.
 	 * 
 	 * @param appName Application Name.
 	 * @param facNumber Facility Number.
@@ -94,6 +95,13 @@ public class MSysLogger {
 	 */
 	public void setSyslogPort(int port) {
 		logPort = port;
+	}
+	
+	/**
+	 * Not yet implemented.
+	 */
+	public void setTimeZone() {
+		
 	}
 	
 	/**
@@ -149,41 +157,7 @@ public class MSysLogger {
 		//Does nothing if severity is legal.
 		LogSeverity.checkForValidSeverity(severity);
 		
-		String pri = "<" + ((facilityNumber * 8) + severity) + ">";
-		String version = "1";
-		String timeStamp = java.time.Clock.systemUTC().instant().truncatedTo(ChronoUnit.MICROS).toString();
-		//Defaults to the NILVALUE if we can't grab the FQDN, host name, or IP address for some reason.
-		String hostName = "-";
-		//We don't support structured data at this time.
-		String structuredData = "-";
-		
-		//getCanonicalHostName should attempt to get the FQDN.
-		//If that fails, it should try to get the hostname.
-		//If that also fails, it should try to get the local IP address.
-		//If that fails, then we are stuck with the NILVALUE.
-		try {
-			hostName = InetAddress.getLocalHost().getCanonicalHostName();
-		} catch (UnknownHostException e1) {
-			//we are stuck with the NILVALUE at this point.
-		}
-		
-		String tempMessage = pri;
-		tempMessage += version; 
-		tempMessage += " " + timeStamp;
-		tempMessage += " " + hostName;
-		tempMessage += " " + applicationName;
-		tempMessage += " " + processID;
-		
-		//Checking for the NILVALUE.  We have to remove or add the "ID" depending on if it's a NILVALUE or not.
-		if(msgID.matches("-"))
-			tempMessage += " -";
-		else
-			tempMessage += " ID" + msgID;
-		
-		tempMessage += " " + structuredData;
-		tempMessage += " " + logMessage;
-		
-		byte[] message = tempMessage.getBytes();
+		byte[] message = createLogStatement(logMessage, severity, processID, msgID).getBytes();
 		DatagramPacket logPacket = new DatagramPacket(message, message.length, logAddress, logPort);
 		
 		try {
@@ -199,5 +173,43 @@ public class MSysLogger {
 	 */
 	public void close() {
 		logSocket.close();
+	}
+	
+	private String createLogStatement(String logMessage, int severity, String processID, String msgID) {
+		
+		String pri = "<" + ((facilityNumber * 8) + severity) + ">";
+		String version = "1";
+		String timeStamp = java.time.Clock.systemUTC().instant().truncatedTo(ChronoUnit.MICROS).toString();
+		//Defaults to the NILVALUE if we can't grab the FQDN, host name, or IP address for some reason.
+		String hostName = "-";
+		//We don't support structured data at this time.
+		String structuredData = "-";
+		
+		//Attempts to get the hostname.
+		//If that fails, it should try to get the local IP address.
+		//If that also fails, then we are stuck with the NILVALUE.
+		try {
+			hostName = InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e1) {
+			//we are stuck with the NILVALUE at this point.
+		}
+		
+		String statement = pri;
+		statement += version; 
+		statement += " " + timeStamp;
+		statement += " " + hostName;
+		statement += " " + applicationName;
+		statement += " " + processID;
+		
+		//Checking for the NILVALUE.  We have to remove or add the "ID" depending on if it's a NILVALUE or not.
+		if(msgID.matches("-"))
+			statement += " -";
+		else
+			statement += " ID" + msgID;
+		
+		statement += " " + structuredData;
+		statement += " " + logMessage;
+		
+		return statement;
 	}
 }
